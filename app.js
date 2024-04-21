@@ -4,6 +4,9 @@
   var cookieParser = require('cookie-parser');
   var logger = require('morgan');
   const axios = require('axios');
+  const Razorpay = require('razorpay');
+
+
 
   const PORT = process.env.PORT || 3000;
   const ASOS_API_KEY = '44480c4e9fmshc84bfdc57418cb6p123fe7jsn73b11bdbc0bb';
@@ -12,6 +15,11 @@
   var usersRouter = require('./routes/users');
 
   var app = express();
+
+  const razorpay = new Razorpay({
+    key_id: 'rzp_test_pibBslxx3R8MWl', // Your Razorpay API key ID
+    key_secret: 'GRws8wEUVngdWomNCvUbLTJa' // Your Razorpay API key secret
+});
 
  
   app.set('views', path.join(__dirname, 'views'));
