@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+</head>
+    <body>
+    <form id="payment-form">
+        <input type="hidden" name="amount" value="500"> 
+        <input type="hidden" name="currency" value="USD">
+        
+        <button type="submit">Pay $500</button>
+    </form>
+    
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script>
+        document.getElementById('payment-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            var form = this;
+    
+            
+            fetch('https://api.razorpay.com/v1/orders', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'GRws8wEUVngdWomNCvUbLTJa' 
+                },
+                body: JSON.stringify({
+                    amount: 50, 
+                    currency: 'USD',
+                   
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                
+                var options = {
+                    key: 'GRws8wEUVngdWomNCvUbLTJa', 
+                    amount: data.amount,
+                    currency: data.currency,
+                    order_id: data.id,
+                    name: 'Your Company Name',
+                    description: 'Aisist Reimbursement',
+                    handler: function(response) {
+                        alert('Payment successful! Payment ID: ' + response.razorpay_payment_id);
+                        form.reset();
+                    }
+                };
+                var rzp = new Razorpay(options);
+                rzp.open();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Payment failed. Please try again.');
+            });
+        });
+    </script>
+    
+</body>
+</html>
