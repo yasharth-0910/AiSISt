@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AiSISt</title>
+    <style>
+        body {
+            background-color: black; 
+            padding: 0; 
+        }
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center; 
+            background-color: white;
+            padding: 20px;
+        }
+        .navbar img {
+            height: 50px;
+            width: 60px;
+            border-radius: 50%;
+            margin-right: 15px; 
+        }
+        
+        .prompt-box {
+            position: fixed;
+            bottom: 40px; 
+            width: calc(100% - 40px); 
+            max-width: 600px; 
+            margin: 0 auto; 
+            left: 0;
+            right: 0;
+            transform: translateX(-50%);
+            background-color: transparent; 
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            border-radius: 10px;
+        }
+        .prompt-box input[type="text"] {
+            flex: 1;
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-right: 10px;
+            box-sizing: border-box;
+            color: wheat;
+        }
+        .prompt-box button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        /* Style for weather data */
+        #weatherData {
+            color: white;
+            padding: 20px;
+            font-size: 18px;
+        }
+    </style>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div></div>
+        <div style="color:white; font-size: 30px;">AiSISt</div>
+        <div></div>
+    </nav>
+
+    <div>
+        <img class="logo" src="./assests/logo.png" alt="" style="left: 100px;">
+    </div>
+
+    
+    <div class="prompt-box">
+        <input type="text" placeholder="Type your message here..." id="userInput" st>
+        <button onclick="getUserInput()">Submit</button>
+    </div>
+
+    <!-- Weather data will be displayed here -->
+    <div id="weatherData"></div>
+
+    <script>
+                // Function to handle user input and fetch weather data
+        function getUserInput() {
+            try {
+                // Get user input (location) from the input field
+                const location = document.getElementById("userInput").value;
+
+                // Make a GET request to your backend /weather endpoint with the user's location
+                const xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === XMLHttpRequest.DONE) {
+                        if (xhr.status === 200) {
+                            const weatherData = JSON.parse(xhr.responseText);
+                            displayWeatherData(weatherData);
+                        } else {
+                            console.error('Error fetching weather data:', xhr.status);
+                            alert('Error fetching weather data. Please try again.');
+                        }
+                    }
+                };
+                xhr.open('GET', `/weather?location=${encodeURIComponent(location)}`);
+                xhr.send();
+            } catch (error) {
+                // Handle any errors
+                console.error('Error fetching weather data:', error);
+                alert('Error fetching weather data. Please try again.');
+            }
+        }
+
+        // Function to display weather data in the UI
+        // Function to display weather data in the UI
+        function displayWeatherData(weatherData) {
+            // Convert temperature from Kelvin to Celsius
+            const temperatureCelsius = (weatherData.temperature - 273.15).toFixed(2);
+
+            const weatherDataContainer = document.getElementById('weatherData');
+            weatherDataContainer.innerHTML = `
+                <p>Temperature: ${temperatureCelsius} &#176;C</p>
+                <p>Description: ${weatherData.description}</p>
+                <p>Clothing Recommendations: ${weatherData.clothingRecommendations}</p>
+            `;
+        }
+
+    </script>
+</body>
+</html>
