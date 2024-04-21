@@ -1,160 +1,163 @@
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
-const axios = require('axios');
+  var createError = require('http-errors');
+  var express = require('express');
+  var path = require('path');
+  var cookieParser = require('cookie-parser');
+  var logger = require('morgan');
+  const axios = require('axios');
 
-const PORT = process.env.PORT || 3000;
-const ASOS_API_KEY = '44480c4e9fmshc84bfdc57418cb6p123fe7jsn73b11bdbc0bb';
+  const PORT = process.env.PORT || 3000;
+  const ASOS_API_KEY = '44480c4e9fmshc84bfdc57418cb6p123fe7jsn73b11bdbc0bb';
 
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
+  var indexRouter = require('./routes/index');
+  var usersRouter = require('./routes/users');
 
-var app = express();
+  var app = express();
 
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs');
+ 
+  app.set('views', path.join(__dirname, 'views'));
+  app.set('view engine', 'ejs');
 
-app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
-
-
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
-
-// Route for handling generic errors
-app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
-});
-
-app.get('/', (req, res) => {
-  res.send('Hello from the server!');
-});
-
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
-
-// Route for fetching weather data and recommending clothing
-// Route for fetching weather data and recommending clothing
-
-// Route for fetching weather data and recommending clothing
-// Route for fetching weather data and recommending clothing
-app.get('/weather', async (req, res) => {
-  try {
-    // Get the location query parameter from the request
-    const { location } = req.query;
-
-    // Make a GET request to the weather API
-    const response = await axios.get(`https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=dc96736b27c2073a03c54d79800c90b7`);
-
-    // Extract relevant weather data from the response
-    const weatherData = {
-      temperature: response.data.main.temp,
-      description: response.data.weather[0].description,
-      humidity: response.data.main.humidity,
-      windSpeed: response.data.wind.speed,
-      cloudiness: response.data.clouds.all
-    };
-
-    // Determine clothing recommendations based on weather conditions
-    let clothingRecommendations = generateClothingRecommendations(weatherData);
-
-    // Fetch clothing recommendations from ASOS API
-    const asosClothing = await getASOSClothing(clothingRecommendations);
-
-    // Log the ASOS clothing recommendations response
-    console.log('ASOS Clothing Recommendations:', asosClothing);
-
-    // Send the weather data, clothing recommendations, and ASOS clothing back to the client
-    res.json({ ...weatherData, clothingRecommendations, asosClothing });
-  } catch (error) {
-    // Handle any errors
-    console.error('Error fetching weather data:', error);
-    res.status(500).send('Error fetching weather data');
-  }
-});
+  app.use(logger('dev'));
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: false }));
+  app.use(cookieParser());
+  app.use(express.static(path.join(__dirname, 'public')));
 
 
-// Function to generate clothing recommendations based on weather conditions
-function generateClothingRecommendations(weatherData) {
-  let recommendations = '';
+  app.use('/', indexRouter);
+  app.use('/users', usersRouter);
 
-  // Temperature-based recommendations
-  if (weatherData.temperature < 5) {
-    recommendations += 'It\'s freezing cold! Consider wearing heavy winter clothing like a down jacket, scarf, gloves, and boots.';
-  } else if (weatherData.temperature < 15) {
-    recommendations += 'It\'s cold. Wear a warm jacket, sweater, and trousers.';
-  } else if (weatherData.temperature < 25) {
-    recommendations += 'It\'s mild. A light jacket or long-sleeve shirt should suffice.';
-  } else {  
-    recommendations += 'It\'s warm. Opt for light clothing like a t-shirt, shorts, and sandals.';
-  }
+  
+  app.use(function(err, req, res, next) {
+    
+    res.locals.message = err.message;
+    res.locals.error = req.app.get('env') === 'development' ? err : {};
 
-  // Humidity-based recommendations
-  if (weatherData.humidity > 70) {
-    recommendations += ' Beware of high humidity. Consider wearing breathable fabrics like cotton to stay comfortable.';
-  }
+    
+    res.status(err.status || 500);
+    res.render('error');
+  });
 
-  // Wind speed-based recommendations
-  if (weatherData.windSpeed > 10) {
-    recommendations += ' It\'s windy. Don\'t forget to wear a windbreaker or a jacket with good wind resistance.';
-  }
+  app.get('/', (req, res) => {
+    res.send('Hello from the server!');
+  });
 
-  return recommendations;
-}
+  app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
+  });
 
-async function getASOSClothing(weatherData) {
-  try {
-    let clothingKeywords = '';
+  
+  app.get('/weather', async (req, res) => {
+    try {
+      
+      const { location } = req.query;
 
-    // Customize clothing keywords based on weather conditions
-    if (weatherData.temperature < 5) {
-      clothingKeywords = 'winter jacket';
-    } else if (weatherData.temperature < 15) {
-      clothingKeywords = 'sweater trousers';
-    } else if (weatherData.temperature < 25) {
-      clothingKeywords = 't-shirt shorts sandals';
+      
+      const response = await axios.get(`https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=dc96736b27c2073a03c54d79800c90b7`);
+
+      
+      const temperatureKelvin = response.data.main.temp;
+      const temperatureCelsius = temperatureKelvin;
+      const weatherData = {
+        temperature: temperatureCelsius,
+        description: response.data.weather[0].description,
+        humidity: response.data.main.humidity,
+        windSpeed: response.data.wind.speed,
+        cloudiness: response.data.clouds.all
+      };
+
+      
+      let clothingRecommendations = generateClothingRecommendations(weatherData);
+
+      
+      const asosClothing = await getASOSClothing(clothingRecommendations);
+
+      
+      console.log('ASOS Clothing Recommendations:', asosClothing);
+
+      
+      res.json({ ...weatherData, clothingRecommendations, asosClothing });
+    } catch (error) {
+      
+      console.error('Error fetching weather data:', error);
+      res.status(500).send('Error fetching weather data');
+    }
+  });
+
+
+
+  function generateClothingRecommendations(weatherData) {
+    let recommendations = '';
+
+    
+    const temperature = weatherData.temperature -273;
+    if (temperature < 5) {
+      recommendations += 'It\'s freezing cold! Consider wearing heavy winter clothing like a down jacket, scarf, gloves, and boots.';
+    } else if (temperature >= 5 && temperature < 15) {
+      recommendations += 'It\'s cold. Wear a warm jacket, sweater, and trousers.';
+    } else if (temperature >= 15 && temperature < 25) {
+      recommendations += 'It\'s mild. A light jacket or long-sleeve shirt should suffice.';
+    } else if (temperature >= 25 && temperature < 35) {
+      recommendations += 'It\'s warm. Opt for light clothing like a t-shirt, shorts, and sandals.';
     } else {
-      clothingKeywords = 't-shirt shorts sandals';
+      recommendations += 'It\'s very hot outside. Go for cotton style clothing.';
     }
 
-    // Make a GET request to the ASOS API with the customized query
-    const response = await axios.get('https://asos2.p.rapidapi.com/v2/auto-complete', {
-      params: {
-        q: clothingKeywords,
-        store: 'US',
-        country: 'US',
-        currency: 'USD',
-        sizeSchema: 'US',
-        lang: 'en-US'
-      },
-      headers: {
-        'X-RapidAPI-Key': ASOS_API_KEY,
-        'X-RapidAPI-Host': 'asos2.p.rapidapi.com'
-      }
-    });
+    
+    if (weatherData.humidity > 70) {
+      recommendations += ' Beware of high humidity. Consider wearing breathable fabrics like cotton to stay comfortable.';
+    }
 
-    // Return the data from the ASOS API response
-    return response.data;
-  } catch (error) {
-    // Handle any errors
-    console.error('Error fetching ASOS clothing recommendations:', error);
-    throw new Error('Error fetching ASOS clothing recommendations');
+    
+    if (weatherData.windSpeed > 10) {
+      recommendations += ' It\'s windy. Don\'t forget to wear a windbreaker or a jacket with good wind resistance.';
+    }
+
+    return recommendations;
   }
-}
+
+
+  async function getASOSClothing(weatherData) {
+    try {
+      let clothingKeywords = '';
+
+      
+      if (weatherData.temperature < 5) {
+        clothingKeywords = 'winter jacket';
+      } else if (5<weatherData.temperature < 15) {
+        clothingKeywords = 'sweater trousers';
+      } else if (15<weatherData.temperature < 25) {
+        clothingKeywords = 't-shirt shorts sandals';
+      } else {
+        clothingKeywords = 't-shirt shorts sandals';
+      }
+
+      
+      const response = await axios.get('https://asos2.p.rapidapi.com/v2/auto-complete', {
+        params: {
+          q: clothingKeywords,
+          store: 'US',
+          country: 'US',
+          currency: 'USD',
+          sizeSchema: 'US',
+          lang: 'en-US'
+        },
+        headers: {
+          'X-RapidAPI-Key': ASOS_API_KEY,
+          'X-RapidAPI-Host': 'asos2.p.rapidapi.com'
+        }
+      });
+
+    
+      return response.data;
+    } catch (error) {
+      
+
+      console.error('Error fetching ASOS clothing recommendations:', error);
+      throw new Error('Error fetching ASOS clothing recommendations');
+    }
+  }
 
 
 
-module.exports = app;
+  module.exports = app;
